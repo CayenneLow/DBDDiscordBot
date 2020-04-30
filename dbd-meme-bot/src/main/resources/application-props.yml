@@ -1,0 +1,10 @@
+discord:
+    botToken: NzA0NjEwMjcxNjI4NjIzODcy.XqgE3w.5TFP2I_ECgAXrEfxpXM5a66lnck
+reddit:
+    baseApi: https://oauth.reddit.com/
+    memeSource: r/deadbydaylight/
+    refreshToken:
+    authHeader: bearer %s
+    refreshTokenUrl: https://%s:%s@www.reddit.com/api/v1/access_token
+app:
+    defaultNMemes: 2
