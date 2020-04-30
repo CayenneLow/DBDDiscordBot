@@ -1,18 +1,27 @@
 package com.khye.config;
 
 public class RedditProps {
-    private String baseApi;
+    private String base;
+    private String oauthBase;
     private String memeSource;
     private String refreshToken;
     private String authHeader;
     private String refreshTokenUrl;
 
-    public String getBaseApi() {
-        return this.baseApi;
+    public String getBase() {
+        return this.base;
     }
 
-    public void setBaseApi(String baseApi) {
-        this.baseApi = baseApi;
+    public void setBase(String base) {
+        this.base = base;
+    }
+
+    public String getOauthBase() {
+        return this.oauthBase;
+    }
+
+    public void setOauthBase(String oauthBase) {
+        this.oauthBase = oauthBase;
     }
 
     public String getMemeSource() {
@@ -46,5 +55,4 @@ public class RedditProps {
     public void setRefreshTokenUrl(String refreshTokenUrl) {
         this.refreshTokenUrl = refreshTokenUrl;
     }
-
 }

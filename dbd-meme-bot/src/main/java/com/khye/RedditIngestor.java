@@ -23,7 +23,7 @@ public class RedditIngestor {
     public RedditIngestor(Configuration config) {
         this.config = config;
         this.redditProps = config.getReddit();
-        this.baseEndPoint = config.getReddit().getBaseApi();
+        this.baseEndPoint = config.getReddit().getOauthBase();
     }
 
     public List<JSONObject> getHot(String source, String after, String before, Integer count, Integer limit,

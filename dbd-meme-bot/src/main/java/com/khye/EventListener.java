@@ -1,5 +1,6 @@
 package com.khye;
 
+import java.awt.Color;
 import java.util.List;
 
 import com.khye.config.Configuration;
@@ -8,8 +9,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import kong.unirest.json.JSONObject;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
@@ -39,19 +42,37 @@ public class EventListener extends ListenerAdapter {
         content = content.toLowerCase();
         switch (content) {
             case "!ping":
-                channel.sendMessage("Use NOED if smol pp").queue(); // Important to call .queue() on the RestAction returned by sendMessage(...)
+                channel.sendMessage("Use NOED if smol pp").queue(); // Important to call .queue() on the RestAction
+                                                                    // returned by sendMessage(...)
                 break;
 
             case "!dbdmeme":
                 String source = config.getReddit().getMemeSource();
-                List<JSONObject> memesJson = redditIngestor.getHot(source, null, null, 0, 100, config.getApp().getDefaultNMemes());
-                String msg = parseToMessage(memesJson);
-                channel.sendMessage(msg).queue();;
+                List<JSONObject> memesJson = redditIngestor.getHot(source, null, null, 0, 100,
+                        config.getApp().getDefaultNMemes());
+                for (JSONObject meme : memesJson) {
+                    channel.sendMessage(parseToEmbed(meme)).queue();
+                    redditIngestor.hidePost(meme.getString("name"));
+                }
                 break;
 
             default:
                 break;
         }
+    }
+
+    private MessageEmbed parseToEmbed(JSONObject entry) {
+        EmbedBuilder emBuilder = new EmbedBuilder();
+        // String title = String.format("%s - :fire: %s :fire:", entry.getString("title"),  entry.getString("score"));
+        // emBuilder.setTitle(title);
+        emBuilder.setTitle(entry.getString("title"));
+        emBuilder.addField("Score", entry.getString("score"), false);
+        emBuilder.setDescription(config.getReddit().getBase() + entry.getString("permalink"));
+        emBuilder.setFooter("Unfortunately, the bot doesn't work for v.redd.it links");
+        emBuilder.setColor(Color.CYAN);
+        emBuilder.setAuthor(entry.getString("author"));
+        emBuilder.setImage(entry.getString("url"));
+        return emBuilder.build();
     }
 
     private String parseToMessage(List<JSONObject> jsonEntries) {
@@ -60,7 +81,7 @@ public class EventListener extends ListenerAdapter {
             String title = entry.getString("title");
             String url = entry.getString("url");
             strBuilder.append(String.format("%s : %s\n", title, url));
-            
+
             // hide post
             String fullName = entry.getString("name");
             redditIngestor.hidePost(fullName);
