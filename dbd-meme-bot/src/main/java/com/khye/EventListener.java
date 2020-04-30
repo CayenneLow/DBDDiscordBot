@@ -2,6 +2,8 @@ package com.khye;
 
 import java.util.List;
 
+import com.khye.config.Configuration;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,10 +19,11 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 public class EventListener extends ListenerAdapter {
     private static Logger log = LoggerFactory.getLogger(EventListener.class);
     private Configuration config;
-    private RedditIngestor redditIngestor = new RedditIngestor(config);
+    private RedditIngestor redditIngestor;
 
     public EventListener(Configuration config) {
         this.config = config;
+        redditIngestor = new RedditIngestor(config);
     }
 
     @Override
@@ -40,10 +43,10 @@ public class EventListener extends ListenerAdapter {
                 break;
 
             case "!dbdmeme":
-                String source = config.getReddit().get("memeSource");
-                List<JSONObject> memesJson = redditIngestor.getHot(source, null, null, 0, 100, Integer.parseInt(config.getApp().get("defaultNMemes")));
+                String source = config.getReddit().getMemeSource();
+                List<JSONObject> memesJson = redditIngestor.getHot(source, null, null, 0, 100, config.getApp().getDefaultNMemes());
                 String msg = parseToMessage(memesJson);
-                channel.sendMessage(msg);
+                channel.sendMessage(msg).queue();;
                 break;
 
             default:
@@ -56,7 +59,7 @@ public class EventListener extends ListenerAdapter {
         for (JSONObject entry : jsonEntries) {
             String title = entry.getString("title");
             String url = entry.getString("url");
-            strBuilder.append(String.format("%s : %s", title, url));
+            strBuilder.append(String.format("%s : %s\n", title, url));
             
             // hide post
             String fullName = entry.getString("name");

@@ -2,6 +2,8 @@ package com.khye;
 
 import javax.security.auth.login.LoginException;
 
+import com.khye.config.Configuration;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +19,7 @@ public class JDAConnector {
     }
     public void connect() {
         try {
-            JDA jda = JDABuilder.createDefault(config.getDiscord().get("botToken")).build();
+            JDA jda = JDABuilder.createDefault(config.getDiscord().getBotToken()).build();
             jda.addEventListener(new EventListener(config));
         } catch (LoginException e) {
             log.error(e.getMessage());

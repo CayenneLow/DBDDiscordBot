@@ -2,7 +2,9 @@ package com.khye;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+
+import com.khye.config.Configuration;
+import com.khye.config.RedditProps;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,17 +18,18 @@ public class RedditIngestor {
     private Logger log = LoggerFactory.getLogger(RedditIngestor.class);
     private String baseEndPoint;
     private Configuration config;
-    private Map<String, String> redditProps;
+    private RedditProps redditProps;
+
     public RedditIngestor(Configuration config) {
         this.config = config;
         this.redditProps = config.getReddit();
-        this.baseEndPoint = config.getReddit().get("baseApi");
+        this.baseEndPoint = config.getReddit().getBaseApi();
     }
 
-    public List<JSONObject> getHot(String source, String after, String before, Integer count, Integer limit, Integer numRequested) {
+    public List<JSONObject> getHot(String source, String after, String before, Integer count, Integer limit,
+            Integer numRequested) {
         HttpResponse<String> response = Unirest.get(baseEndPoint + source + "hot.json")
-                .header("Authorization", redditProps.get("authHeader"))
-                .queryString("limit", limit.toString())
+                .header("Authorization", redditProps.getAuthHeader()).queryString("limit", limit.toString())
                 .queryString("count", count.toString()).asString();
         JSONObject responseJson = new JSONObject(response.getBody());
         if (response.getStatus() == 401 || response.getStatus() == 403) {
@@ -49,10 +52,8 @@ public class RedditIngestor {
     }
 
     public void refreshAccessToken() {
-        HttpResponse<String> response = Unirest.post(redditProps.get("refreshTokenUrl"))
-                                               .field("grant_type", "refresh_token")
-                                               .field("refresh_token", redditProps.get("refreshToken"))
-                                               .asString();
+        HttpResponse<String> response = Unirest.post(redditProps.getRefreshTokenUrl())
+                .field("grant_type", "refresh_token").field("refresh_token", redditProps.getRefreshToken()).asString();
         if (response.isSuccess()) {
             JSONObject obj = new JSONObject(response.getBody());
             log.debug("New Access Token: {}", obj.getString("access_token"));
@@ -64,9 +65,7 @@ public class RedditIngestor {
 
     public void hidePost(String postName) {
         HttpResponse<String> response = Unirest.post(baseEndPoint + "api/hide")
-                                                .header("Authorization", redditProps.get("authHeader"))
-                                                .queryString("id", postName)
-                                                .asString();
+                .header("Authorization", redditProps.getAuthHeader()).queryString("id", postName).asString();
         log.debug("Hide post status: {}", response.getStatus());
     }
 }
