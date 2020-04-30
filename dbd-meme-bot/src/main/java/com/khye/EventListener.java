@@ -16,8 +16,12 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
  */
 public class EventListener extends ListenerAdapter {
     private static Logger log = LoggerFactory.getLogger(EventListener.class);
-    private Configuration config = Configuration.getInstance();
-    private RedditIngestor redditIngestor = RedditIngestor.getInstance();
+    private Configuration config;
+    private RedditIngestor redditIngestor = new RedditIngestor(config);
+
+    public EventListener(Configuration config) {
+        this.config = config;
+    }
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
@@ -30,7 +34,6 @@ public class EventListener extends ListenerAdapter {
         // console view (strip discord formatting)
         MessageChannel channel = event.getChannel();
         content = content.toLowerCase();
-        RedditIngestor reddit = RedditIngestor.getInstance();
         switch (content) {
             case "!ping":
                 channel.sendMessage("Use NOED if smol pp").queue(); // Important to call .queue() on the RestAction returned by sendMessage(...)
@@ -38,7 +41,7 @@ public class EventListener extends ListenerAdapter {
 
             case "!dbdmeme":
                 String source = config.getReddit().get("memeSource");
-                List<JSONObject> memesJson = reddit.getHot(source, null, null, 0, 100, Integer.parseInt(Configuration.getInstance().getApp().get("defaultNMemes")));
+                List<JSONObject> memesJson = redditIngestor.getHot(source, null, null, 0, 100, Integer.parseInt(config.getApp().get("defaultNMemes")));
                 String msg = parseToMessage(memesJson);
                 channel.sendMessage(msg);
                 break;

@@ -10,11 +10,15 @@ import net.dv8tion.jda.api.JDABuilder;
 
 public class JDAConnector {
     private static Logger log = LoggerFactory.getLogger(JDAConnector.class);
-    private static Configuration config = Configuration.getInstance();
+    private Configuration config;
+
+    public JDAConnector(Configuration config) {
+        this.config = config;
+    }
     public void connect() {
         try {
             JDA jda = JDABuilder.createDefault(config.getDiscord().get("botToken")).build();
-            jda.addEventListener(new EventListener());
+            jda.addEventListener(new EventListener(config));
         } catch (LoginException e) {
             log.error(e.getMessage());
         }

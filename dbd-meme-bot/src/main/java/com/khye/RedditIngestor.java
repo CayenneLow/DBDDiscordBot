@@ -15,18 +15,12 @@ import kong.unirest.json.JSONObject;
 public class RedditIngestor {
     private Logger log = LoggerFactory.getLogger(RedditIngestor.class);
     private String baseEndPoint;
-    private static RedditIngestor singleton = null;
-    private Map<String, String> redditProps = Configuration.getInstance().getReddit();
-
-    private RedditIngestor() {
-        this.baseEndPoint = redditProps.get("baseApi");
-    }
-
-    public static RedditIngestor getInstance() {
-        if (singleton == null) {
-            singleton = new RedditIngestor();
-        } 
-        return singleton;
+    private Configuration config;
+    private Map<String, String> redditProps;
+    public RedditIngestor(Configuration config) {
+        this.config = config;
+        this.redditProps = config.getReddit();
+        this.baseEndPoint = config.getReddit().get("baseApi");
     }
 
     public List<JSONObject> getHot(String source, String after, String before, Integer count, Integer limit, Integer numRequested) {
@@ -62,7 +56,7 @@ public class RedditIngestor {
         if (response.isSuccess()) {
             JSONObject obj = new JSONObject(response.getBody());
             log.debug("New Access Token: {}", obj.getString("access_token"));
-            Configuration.refreshAccessToken(obj.getString("access_token"));
+            config.refreshAccessToken(obj.getString("access_token"));
         } else {
             log.error("Something went wrong with refreshing token");
         }
