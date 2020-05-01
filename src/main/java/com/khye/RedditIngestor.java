@@ -2,6 +2,7 @@ package com.khye;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import com.khye.config.Configuration;
 import com.khye.config.RedditProps;
@@ -43,9 +44,13 @@ public class RedditIngestor {
             List<JSONObject> entries = new ArrayList<>();
             JSONArray children = responseJson.getJSONObject("data").getJSONArray("children");
             while (entries.size() < numRequested) {
-                int rand = (int) Math.floor(Math.random() * (children.length()));
+                int rand = (new Random()).nextInt(children.length());
                 JSONObject jsonData = children.getJSONObject(rand).getJSONObject("data");
-                entries.add(jsonData);
+                if (!jsonData.getBoolean("is_self") && !jsonData.getBoolean("is_video")) {
+                    entries.add(jsonData);
+                } else {
+                    log.debug("Got self/v.redd.it post");
+                }
             }
             return entries;
         }
