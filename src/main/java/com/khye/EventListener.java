@@ -75,7 +75,8 @@ public class EventListener extends ListenerAdapter {
         return emBuilder.build();
     }
 
-    private String parseToMessage(List<JSONObject> jsonEntries) {
+    @SuppressWarnings("unused")
+    private String parseToTextMessage(List<JSONObject> jsonEntries) {
         StringBuilder strBuilder = new StringBuilder();
         for (JSONObject entry : jsonEntries) {
             String title = entry.getString("title");

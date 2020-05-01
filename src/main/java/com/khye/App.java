@@ -10,6 +10,7 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
 public class App {
+    @SuppressWarnings("unused")
     private Logger log = LoggerFactory.getLogger(App.class);
 
     public static void main(String[] args) {

@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Configuration {
+    @SuppressWarnings("unused")
     private static Logger log = LoggerFactory.getLogger(Configuration.class);
     private DiscordProps discord;
     private RedditProps reddit;
