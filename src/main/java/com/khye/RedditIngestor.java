@@ -27,16 +27,16 @@ public class RedditIngestor {
         this.baseEndPoint = config.getReddit().getOauthBase();
     }
 
-    public List<JSONObject> getHot(String source, String after, String before, Integer count, Integer limit,
+    public List<JSONObject> getContent(String source, String after, String before, Integer count, Integer limit,
             Integer numRequested) {
-        HttpResponse<String> response = Unirest.get(baseEndPoint + source + "hot.json")
+        HttpResponse<String> response = Unirest.get(baseEndPoint + source)
                 .header("Authorization", redditProps.getAuthHeader()).queryString("limit", limit.toString())
                 .queryString("count", count.toString()).asString();
         JSONObject responseJson = new JSONObject(response.getBody());
         if (response.getStatus() == 401 || response.getStatus() == 403) {
             log.info("Access token invalid, refreshing");
             refreshAccessToken();
-            return getHot(source, after, before, count, limit, numRequested);
+            return getContent(source, after, before, count, limit, numRequested);
         } else if (!response.isSuccess()) {
             log.error("Something went wrong with Reddit API call, status: {}", response.getStatus());
             return null;

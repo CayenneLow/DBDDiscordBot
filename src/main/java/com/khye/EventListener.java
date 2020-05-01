@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.khye.config.Configuration;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,27 +34,20 @@ public class EventListener extends ListenerAdapter {
     public void onMessageReceived(MessageReceivedEvent event) {
         if (event.getAuthor().isBot())
             return; // We don't want to respond to other bot accounts, including ourself
+        MessageChannel channel = event.getChannel();
         Message message = event.getMessage();
         String content = message.getContentRaw();
-        // getContentRaw() is an atomic getter
-        // getContentDisplay() is a lazy getter which modifies the content for e.g.
-        // console view (strip discord formatting)
-        MessageChannel channel = event.getChannel();
+        if (!content.startsWith("!"))
+            return; // don't do unecessary parsing if it's not a command
         content = content.toLowerCase();
-        switch (content) {
+        String[] splitted = content.split(" ");
+        switch (splitted[0]) {
             case "!ping":
-                channel.sendMessage("Use NOED if smol pp").queue(); // Important to call .queue() on the RestAction
-                                                                    // returned by sendMessage(...)
+                channel.sendMessage("Use NOED if smol pp").queue();
                 break;
 
             case "!dbdmeme":
-                String source = config.getReddit().getMemeSource();
-                List<JSONObject> memesJson = redditIngestor.getHot(source, null, null, 0, 100,
-                        config.getApp().getDefaultNMemes());
-                for (JSONObject meme : memesJson) {
-                    channel.sendMessage(parseToEmbed(meme)).queue();
-                    redditIngestor.hidePost(meme.getString("name"));
-                }
+                sendToDiscord(channel, constructMemes(channel, splitted));
                 break;
 
             default:
@@ -61,9 +55,50 @@ public class EventListener extends ListenerAdapter {
         }
     }
 
+    private List<JSONObject> constructMemes(MessageChannel channel, String[] command) {
+        List<JSONObject> memesJson = null;
+        String source = config.getReddit().getMemeSource();
+        // populate memesJson
+        if (command.length < 2) {
+            // handle single argument
+            // defaults to reddit:hot and 1 post
+            memesJson = redditIngestor.getContent(source + "hot.json", null, null, 0, 100, config.getApp().getDefaultNMemes());
+        } else {
+            int nPosts = command.length == 3 ? Integer.parseInt(command[2]) : config.getApp().getDefaultNMemes();
+            switch (command[1]) {
+                case "top":
+                    memesJson = redditIngestor.getContent(source + "top.json", null, null, 0, 100, nPosts);
+                    break;
+                
+                case "hot":
+                    memesJson = redditIngestor.getContent(source + "hot.json", null, null, 0, 100, nPosts);
+                    break;
+            
+                default:
+                    if (StringUtils.isNumeric(command[1])) {
+                        // is a number
+                        memesJson = redditIngestor.getContent(source + "hot.json", null, null, 0, 100, Integer.parseInt(command[1]));
+                    } else {
+                        // unsupported    
+                        channel.sendMessage("Unsupported Command").queue();
+                    }
+                    break;
+            }                
+        }
+        return memesJson;
+    }
+
+    private void sendToDiscord(MessageChannel channel, List<JSONObject> memesJson) {
+        for (JSONObject meme : memesJson) {
+            channel.sendMessage(parseToEmbed(meme)).queue();
+            redditIngestor.hidePost(meme.getString("name"));
+        }
+    }
+
     private MessageEmbed parseToEmbed(JSONObject entry) {
         EmbedBuilder emBuilder = new EmbedBuilder();
-        // String title = String.format("%s - :fire: %s :fire:", entry.getString("title"),  entry.getString("score"));
+        // String title = String.format("%s - :fire: %s :fire:",
+        // entry.getString("title"), entry.getString("score"));
         // emBuilder.setTitle(title);
         emBuilder.setTitle(entry.getString("title"));
         emBuilder.addField("Score", entry.getString("score"), false);
