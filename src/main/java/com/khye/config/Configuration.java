@@ -1,10 +1,7 @@
 package com.khye.config;
 
-import java.io.StringWriter;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.Yaml;
 
 public class Configuration {
     private static Logger log = LoggerFactory.getLogger(Configuration.class);
@@ -24,10 +21,6 @@ public class Configuration {
     public void refreshAccessToken(String newAccessToken) {
         // refreshing in memory
         reddit.setAuthHeader("bearer " + newAccessToken);
-        // refreshing on disk
-        Yaml yaml = new Yaml();
-        StringWriter writer = new StringWriter();
-        yaml.dump(this, writer);
     }
 
     public DiscordProps getDiscord() {
