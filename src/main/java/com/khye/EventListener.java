@@ -70,6 +70,14 @@ public class EventListener extends ListenerAdapter {
                     memesJson = redditIngestor.getContent(source + "top.json", null, null, 0, 100, nPosts);
                     break;
                 
+                case "new":
+                    memesJson = redditIngestor.getContent(source + "new.json", null, null, 0, 100, nPosts);
+                    break;
+
+                case "rising":
+                    memesJson = redditIngestor.getContent(source + "rising.json", null, null, 0, 100, nPosts);
+                    break;
+                
                 case "hot":
                     memesJson = redditIngestor.getContent(source + "hot.json", null, null, 0, 100, nPosts);
                     break;
