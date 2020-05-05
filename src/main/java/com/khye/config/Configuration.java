@@ -8,15 +8,18 @@ public class Configuration {
     private static Logger log = LoggerFactory.getLogger(Configuration.class);
     private DiscordProps discord;
     private RedditProps reddit;
+    private JDBCProps jdbcProps;
+
     private AppProps app;
 
     public Configuration() {
     }
 
-    public Configuration(DiscordProps discord, RedditProps reddit, AppProps app) {
+    public Configuration(DiscordProps discord, RedditProps reddit, AppProps app, JDBCProps jdbcProps) {
         this.discord = discord;
         this.reddit = reddit;
         this.app = app;
+        this.jdbcProps = jdbcProps;
     }
 
     public void refreshAccessToken(String newAccessToken) {
@@ -47,4 +50,13 @@ public class Configuration {
     public void setApp(AppProps app) {
         this.app = app;
     }
+
+    public JDBCProps getJdbcProps() {
+        return this.jdbcProps;
+    }
+
+    public void setJdbcProps(JDBCProps jdbcProps) {
+        this.jdbcProps = jdbcProps;
+    }
+
 }
