@@ -11,6 +11,7 @@ import com.khye.config.Configuration;
 import com.khye.config.RedditProps;
 import com.khye.service.RedditPostAndBotService;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,8 +56,8 @@ public class RedditIngestor {
                 JSONObject jsonData = children.getJSONObject(rand).getJSONObject("data");
 
                 // check if we've seen this post before
-                Optional<Bot> queryBot = redditPostAndBotService.findByRelationship(jsonData.getString("name"));
-                if (queryBot.isPresent() && queryBot.get().equals(bot)) continue;
+                Optional<Pair<Bot, RedditPost>> queryRelationship = redditPostAndBotService.findByRelationship(bot.getUuid(), jsonData.getString("name"));
+                if (queryRelationship.isPresent()) continue;
 
                 if (jsonData.getBoolean("is_self") || jsonData.getBoolean("is_video")) {
                     log.debug("Got self/v.redd.it post");
@@ -82,9 +83,5 @@ public class RedditIngestor {
         } else {
             log.error("Something went wrong with refreshing token");
         }
-    }
-
-    public void hidePost(RedditPost post, Bot bot) {
-        redditPostAndBotService.saveRelationship(post, bot);
     }
 }

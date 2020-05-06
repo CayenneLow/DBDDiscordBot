@@ -9,6 +9,8 @@ import com.khye.DTO.Bot;
 import com.khye.DTO.RedditPost;
 import com.khye.config.Configuration;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +29,8 @@ public class RedditPostAndBotRepository extends Repository {
         try {
             connect = DriverManager.getConnection(jdbcProps.getUrl(), jdbcProps.getUser(), jdbcProps.getPassword());
             statement = connect.createStatement();
-            resultSet = statement.executeQuery(String.format("SELECT * FROM %s WHERE bot_id=\"%s\"", tableName,uuid.toString()));
+            resultSet = statement
+                    .executeQuery(String.format("SELECT * FROM %s WHERE bot_id=\"%s\"", tableName, uuid.toString()));
             if (resultSet.next()) {
                 // get reddit post
                 String redditPostId = resultSet.getString("reddit_post_id");
@@ -45,7 +48,8 @@ public class RedditPostAndBotRepository extends Repository {
         try {
             connect = DriverManager.getConnection(jdbcProps.getUrl(), jdbcProps.getUser(), jdbcProps.getPassword());
             statement = connect.createStatement();
-            resultSet = statement.executeQuery(String.format("SELECT * FROM %s WHERE reddit_post_id=\"%s\"", tableName, id));
+            resultSet = statement
+                    .executeQuery(String.format("SELECT * FROM %s WHERE reddit_post_id=\"%s\"", tableName, id));
             if (resultSet.next()) {
                 // get bot
                 UUID botId = UUID.fromString(resultSet.getString("bot_id"));
@@ -59,11 +63,33 @@ public class RedditPostAndBotRepository extends Repository {
         return Optional.empty();
     }
 
+    public Optional<Pair<Bot, RedditPost>> findOneByBotIdRedditPostId(UUID uuid, String id) {
+        try {
+            connect = DriverManager.getConnection(jdbcProps.getUrl(), jdbcProps.getUser(), jdbcProps.getPassword());
+            statement = connect.createStatement();
+            resultSet = statement.executeQuery(
+                    String.format("SELECT * FROM %s WHERE reddit_post_id='%s' AND bot_id='%s'", tableName, id, uuid));
+            if (resultSet.next()) {
+                // construct Pair
+                Bot bot = botRepository.findOneByID(UUID.fromString(resultSet.getString("bot_id"))).get();
+                RedditPost redditPost = redditPostRepository.findOneByID(resultSet.getString("reddit_post_id")).get();
+                Pair<Bot, RedditPost> pair = new ImmutablePair<Bot, RedditPost>(bot, redditPost);
+                return Optional.of(pair);
+            }
+        } catch (SQLException e) {
+            log.error("Problem with finding relationship with: {} + {}, error: {}", uuid, id, e);
+        } finally {
+            close();
+        }
+        return Optional.empty();
+    }
+
     public void save(RedditPost post, Bot bot) {
         try {
             connect = DriverManager.getConnection(jdbcProps.getUrl(), jdbcProps.getUser(), jdbcProps.getPassword());
             statement = connect.createStatement();
-            statement.executeUpdate(String.format("INSERT INTO `%s` (`bot_id`, `reddit_post_id`) VALUES ('%s', '%s')", tableName, bot.getUuid(), post.getId()));
+            statement.executeUpdate(String.format("INSERT INTO `%s` (`bot_id`, `reddit_post_id`) VALUES ('%s', '%s')",
+                    tableName, bot.getUuid(), post.getId()));
         } catch (SQLException e) {
             log.error("Problem with saving new reddit post and bot relationship. Error: {}", e);
         } finally {
@@ -75,7 +101,8 @@ public class RedditPostAndBotRepository extends Repository {
         try {
             connect = DriverManager.getConnection(jdbcProps.getUrl(), jdbcProps.getUser(), jdbcProps.getPassword());
             statement = connect.createStatement();
-            statement.executeUpdate(String.format("DELETE FROM `%s` WHERE `%s`.`reddit_post_id` = '%s'", tableName, tableName, post.getId()));
+            statement.executeUpdate(String.format("DELETE FROM `%s` WHERE `%s`.`reddit_post_id` = '%s'", tableName,
+                    tableName, post.getId()));
         } catch (SQLException e) {
             log.error("Problem with deleting relationship, error: {}", e);
         } finally {
@@ -87,7 +114,8 @@ public class RedditPostAndBotRepository extends Repository {
         try {
             connect = DriverManager.getConnection(jdbcProps.getUrl(), jdbcProps.getUser(), jdbcProps.getPassword());
             statement = connect.createStatement();
-            statement.executeUpdate(String.format("DELETE FROM `%s` WHERE `%s`.`bot_id` = '%s'", tableName, tableName, bot.getUuid()));
+            statement.executeUpdate(
+                    String.format("DELETE FROM `%s` WHERE `%s`.`bot_id` = '%s'", tableName, tableName, bot.getUuid()));
         } catch (SQLException e) {
             log.error("Problem with deleting relationship, error: {}", e);
         } finally {

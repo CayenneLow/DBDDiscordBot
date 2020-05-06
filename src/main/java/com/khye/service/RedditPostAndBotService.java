@@ -10,6 +10,7 @@ import com.khye.repository.BotRepository;
 import com.khye.repository.RedditPostAndBotRepository;
 import com.khye.repository.RedditPostRepository;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,5 +60,9 @@ public class RedditPostAndBotService {
 
     public Optional<Bot> findByRelationship(String id) {
         return redditPostAndBotRepository.findOneByRedditPostID(id);
+    }
+
+    public Optional<Pair<Bot, RedditPost>> findByRelationship(UUID uuid, String id) {
+        return redditPostAndBotRepository.findOneByBotIdRedditPostId(uuid, id);
     }
 }
