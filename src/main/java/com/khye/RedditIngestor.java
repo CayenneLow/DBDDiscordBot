@@ -2,6 +2,7 @@ package com.khye;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 import com.khye.DTO.Bot;
@@ -54,8 +55,8 @@ public class RedditIngestor {
                 JSONObject jsonData = children.getJSONObject(rand).getJSONObject("data");
 
                 // check if we've seen this post before
-                Bot queryBot = redditPostAndBotService.findByRelationship(jsonData.getString("name")).get();
-                if (queryBot != null && queryBot.equals(bot)) continue;
+                Optional<Bot> queryBot = redditPostAndBotService.findByRelationship(jsonData.getString("name"));
+                if (queryBot.isPresent() && queryBot.get().equals(bot)) continue;
 
                 if (jsonData.getBoolean("is_self") || jsonData.getBoolean("is_video")) {
                     log.debug("Got self/v.redd.it post");
