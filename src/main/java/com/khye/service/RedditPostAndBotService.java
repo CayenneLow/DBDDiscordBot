@@ -10,7 +10,12 @@ import com.khye.repository.BotRepository;
 import com.khye.repository.RedditPostAndBotRepository;
 import com.khye.repository.RedditPostRepository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class RedditPostAndBotService {
+
+    private Logger log = LoggerFactory.getLogger(RedditPostAndBotService.class);
 
     RedditPostAndBotRepository redditPostAndBotRepository;
 
@@ -25,14 +30,17 @@ public class RedditPostAndBotService {
     }
 
     public void saveRelationship(RedditPost post, Bot bot) {
+        log.info("Saving new Relationship: {} + {}", post, bot);
         redditPostAndBotRepository.save(post, bot);
     }
 
     public void saveBot(Bot bot) {
+        log.info("Saving new Bot: {}", bot);
         botRepo.save(bot);
     }
 
     public void saveRedditPost(RedditPost post) {
+        log.info("Saving new Post: {}", post);
         redditPostRepo.save(post);
     }
 
