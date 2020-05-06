@@ -33,7 +33,7 @@ public class RedditIngestor {
         redditPostAndBotService = new RedditPostAndBotService(config);
     }
 
-    public List<JSONObject> getContent(String source, String after, String before, Integer count, Integer limit,
+    public List<JSONObject> getContent(Bot bot, String source, String after, String before, Integer count, Integer limit,
             Integer numRequested) {
         HttpResponse<String> response = Unirest.get(baseEndPoint + source)
                 .header("Authorization", redditProps.getAuthHeader()).queryString("limit", limit.toString())
@@ -42,7 +42,7 @@ public class RedditIngestor {
         if (response.getStatus() == 401 || response.getStatus() == 403) {
             log.info("Access token invalid, refreshing");
             refreshAccessToken();
-            return getContent(source, after, before, count, limit, numRequested);
+            return getContent(bot, source, after, before, count, limit, numRequested);
         } else if (!response.isSuccess()) {
             log.error("Something went wrong with Reddit API call, status: {}", response.getStatus());
             return null;
@@ -52,10 +52,16 @@ public class RedditIngestor {
             while (entries.size() < numRequested) {
                 int rand = (new Random()).nextInt(children.length());
                 JSONObject jsonData = children.getJSONObject(rand).getJSONObject("data");
-                if (!jsonData.getBoolean("is_self") && !jsonData.getBoolean("is_video")) {
-                    entries.add(jsonData);
-                } else {
+
+                // check if we've seen this post before
+                Bot queryBot = redditPostAndBotService.findByRelationship(jsonData.getString("name")).get();
+                if (queryBot != null && queryBot.equals(bot)) continue;
+
+                if (jsonData.getBoolean("is_self") || jsonData.getBoolean("is_video")) {
                     log.debug("Got self/v.redd.it post");
+                    continue;
+                } else {
+                    entries.add(jsonData);
                 }
             }
             return entries;

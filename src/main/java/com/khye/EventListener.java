@@ -59,6 +59,8 @@ public class EventListener extends ListenerAdapter {
         String content = message.getContentRaw();
         if (!content.startsWith("!"))
             return; // don't do unecessary parsing if it's not a command
+        // get Bot, can assume that we have a bot in db
+        Bot bot = redditPostAndBotService.findByBotId(UUID.nameUUIDFromBytes(event.getGuild().getId().getBytes())).get();
         content = content.toLowerCase();
         String[] splitted = content.split(" ");
         switch (splitted[0]) {
@@ -67,7 +69,7 @@ public class EventListener extends ListenerAdapter {
                 break;
 
             case "!dbdmeme":
-                sendToDiscord(channel, constructMemes(channel, splitted));
+                sendToDiscord(channel, constructMemes(bot, channel, splitted));
                 break;
 
             default:
@@ -75,37 +77,37 @@ public class EventListener extends ListenerAdapter {
         }
     }
 
-    private List<JSONObject> constructMemes(MessageChannel channel, String[] command) {
+    private List<JSONObject> constructMemes(Bot bot, MessageChannel channel, String[] command) {
         List<JSONObject> memesJson = null;
         String source = config.getReddit().getMemeSource();
         // populate memesJson
         if (command.length < 2) {
             // handle single argument
             // defaults to reddit:hot and 1 post
-            memesJson = redditIngestor.getContent(source + "hot.json", null, null, 0, 100, config.getApp().getDefaultNMemes());
+            memesJson = redditIngestor.getContent(bot, source + "hot.json", null, null, 0, 100, config.getApp().getDefaultNMemes());
         } else {
             int nPosts = command.length == 3 ? Integer.parseInt(command[2]) : config.getApp().getDefaultNMemes();
             switch (command[1]) {
                 case "top":
-                    memesJson = redditIngestor.getContent(source + "top.json", null, null, 0, 100, nPosts);
+                    memesJson = redditIngestor.getContent(bot, source + "top.json", null, null, 0, 100, nPosts);
                     break;
                 
                 case "new":
-                    memesJson = redditIngestor.getContent(source + "new.json", null, null, 0, 100, nPosts);
+                    memesJson = redditIngestor.getContent(bot, source + "new.json", null, null, 0, 100, nPosts);
                     break;
 
                 case "rising":
-                    memesJson = redditIngestor.getContent(source + "rising.json", null, null, 0, 100, nPosts);
+                    memesJson = redditIngestor.getContent(bot, source + "rising.json", null, null, 0, 100, nPosts);
                     break;
                 
                 case "hot":
-                    memesJson = redditIngestor.getContent(source + "hot.json", null, null, 0, 100, nPosts);
+                    memesJson = redditIngestor.getContent(bot, source + "hot.json", null, null, 0, 100, nPosts);
                     break;
             
                 default:
                     if (StringUtils.isNumeric(command[1])) {
                         // is a number
-                        memesJson = redditIngestor.getContent(source + "hot.json", null, null, 0, 100, Integer.parseInt(command[1]));
+                        memesJson = redditIngestor.getContent(bot, source + "hot.json", null, null, 0, 100, Integer.parseInt(command[1]));
                     } else {
                         // unsupported    
                         channel.sendMessage("Unsupported Command").queue();

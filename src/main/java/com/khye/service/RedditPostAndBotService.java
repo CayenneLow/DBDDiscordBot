@@ -51,4 +51,12 @@ public class RedditPostAndBotService {
     public Optional<RedditPost> findByRedditPostId(String id) {
         return redditPostRepo.findOneByID(id);
     }
+
+    public Optional<RedditPost> findByRelationship(UUID uuid) {
+        return redditPostAndBotRepository.findOneByBotID(uuid);
+    }
+
+    public Optional<Bot> findByRelationship(String id) {
+        return redditPostAndBotRepository.findOneByRedditPostID(id);
+    }
 }
