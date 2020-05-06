@@ -1,5 +1,6 @@
 package com.khye.DTO;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class Bot {
@@ -33,6 +34,22 @@ public class Bot {
             " uuid='" + getUuid() + "'" +
             ", time_created='" + getTime_created() + "'" +
             "}";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this)
+            return true;
+        if (!(o instanceof Bot)) {
+            return false;
+        }
+        Bot bot = (Bot) o;
+        return Objects.equals(uuid, bot.uuid) && time_created == bot.time_created;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(uuid, time_created);
     }
     
 }

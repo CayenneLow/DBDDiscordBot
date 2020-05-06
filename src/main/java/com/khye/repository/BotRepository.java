@@ -23,16 +23,18 @@ public class BotRepository {
     private Statement statement;
     private ResultSet resultSet;
 
+    private final String tableName = "bots";
+
     public BotRepository(Configuration config) {
-        this.jdbcProps = config.getJdbcProps();
+        this.jdbcProps = config.getJdbc();
     }
 
     public Optional<Bot> findOneByID(UUID uuid) {
         try {
             connect = DriverManager.getConnection(jdbcProps.getUrl(), jdbcProps.getUser(), jdbcProps.getPassword());
             statement = connect.createStatement();
-            resultSet = statement.executeQuery(String.format("SELECT * FROM bots WHERE id=%s", uuid.toString()));
-            if (resultSet.first()) {
+            resultSet = statement.executeQuery(String.format("SELECT * FROM %s WHERE id=\"%s\"", tableName,uuid.toString()));
+            if (resultSet.next()) {
                 return Optional
                         .of(new Bot(UUID.fromString(resultSet.getString("id")), resultSet.getLong("time_created")));
             }
@@ -46,12 +48,23 @@ public class BotRepository {
 
     public void save(Bot bot) {
         try {
-            connect = DriverManager.getConnection(jdbcProps.getUrl(), jdbcProps.getUser(),
-                    jdbcProps.getPassword());
+            connect = DriverManager.getConnection(jdbcProps.getUrl(), jdbcProps.getUser(), jdbcProps.getPassword());
             statement = connect.createStatement();
-            resultSet = statement.executeQuery(String.format("INSERT INTO `bots` (`id`, `time_created`) VALUES ('%s', '%s')", bot.getUuid().toString(), bot.getTime_created()));
+            statement.executeUpdate(String.format("INSERT INTO `%s` (`id`, `time_created`) VALUES ('%s', '%s')", tableName,bot.getUuid().toString(), bot.getTime_created()));
         } catch (SQLException e) {
             log.error("Problem with saving new bot: {}, error: {}", bot, e);
+        } finally {
+            close();
+        }
+    }
+
+    public void delete(Bot bot) {
+        try {
+            connect = DriverManager.getConnection(jdbcProps.getUrl(), jdbcProps.getUser(), jdbcProps.getPassword());
+            statement = connect.createStatement();
+            statement.executeUpdate(String.format("DELETE FROM `%s` WHERE `%s`.`id` = '%s'", tableName, tableName, bot.getUuid().toString()));
+        } catch (SQLException e) {
+            log.error("Problem with deleting bot: {}, error: {}", bot, e);
         } finally {
             close();
         }
@@ -74,4 +87,5 @@ public class BotRepository {
             log.error("Error closing: {}", e);
         }
     }
+
 }
