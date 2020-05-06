@@ -1,25 +1,48 @@
 package com.khye.config;
 
+import java.io.InputStream;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.Constructor;
 
 public class Configuration {
     @SuppressWarnings("unused")
     private static Logger log = LoggerFactory.getLogger(Configuration.class);
     private DiscordProps discord;
     private RedditProps reddit;
-    private JDBCProps jdbcProps;
+    private JDBCProps jdbc;
+
+    private static Configuration instance = null;
 
     private AppProps app;
 
     public Configuration() {
     }
 
-    public Configuration(DiscordProps discord, RedditProps reddit, AppProps app, JDBCProps jdbcProps) {
+    public Configuration(DiscordProps discord, RedditProps reddit, AppProps app, JDBCProps jdbc) {
         this.discord = discord;
         this.reddit = reddit;
         this.app = app;
-        this.jdbcProps = jdbcProps;
+        this.jdbc = jdbc;
+    }
+
+    public static Configuration load() {
+        if (instance == null) {
+            Yaml yaml = new Yaml(new Constructor(Configuration.class));
+            InputStream file = Configuration.class.getClassLoader().getResourceAsStream("application-props.yml");
+            instance = yaml.load(file);
+        } 
+        return instance;
+    }
+    public static Configuration loadTest() {
+        if (instance == null) {
+            Yaml yaml = new Yaml(new Constructor(Configuration.class));
+            InputStream file = Configuration.class.getClassLoader().getResourceAsStream("application-props.yml");   // TODO: Change to test props
+            instance = yaml.load(file);
+        } 
+        return instance;
     }
 
     public void refreshAccessToken(String newAccessToken) {
@@ -51,12 +74,12 @@ public class Configuration {
         this.app = app;
     }
 
-    public JDBCProps getJdbcProps() {
-        return this.jdbcProps;
+    public JDBCProps getJdbc() {
+        return this.jdbc;
     }
 
-    public void setJdbcProps(JDBCProps jdbcProps) {
-        this.jdbcProps = jdbcProps;
+    public void setJdbc(JDBCProps jdbc) {
+        this.jdbc = jdbc;
     }
 
 }
