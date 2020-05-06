@@ -31,6 +31,7 @@ public class RedditPostAndBotService {
 
     public void saveRelationship(RedditPost post, Bot bot) {
         log.info("Saving new Relationship: {} + {}", post, bot);
+        redditPostRepo.save(post);
         redditPostAndBotRepository.save(post, bot);
     }
 

@@ -62,6 +62,9 @@ public class RedditIngestor {
                     continue;
                 } else {
                     entries.add(jsonData);
+                    // add to db
+                    RedditPost post = new RedditPost(jsonData.getString("name"), jsonData.getString("permalink"));
+                    redditPostAndBotService.saveRelationship(post, bot);
                 }
             }
             return entries;
