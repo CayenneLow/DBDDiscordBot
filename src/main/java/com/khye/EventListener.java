@@ -2,8 +2,11 @@ package com.khye;
 
 import java.awt.Color;
 import java.util.List;
+import java.util.UUID;
 
+import com.khye.DTO.Bot;
 import com.khye.config.Configuration;
+import com.khye.service.RedditPostAndBotService;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -11,9 +14,11 @@ import org.slf4j.LoggerFactory;
 
 import kong.unirest.json.JSONObject;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
@@ -25,10 +30,25 @@ public class EventListener extends ListenerAdapter {
     private Configuration config;
     private RedditIngestor redditIngestor;
     
+    private RedditPostAndBotService redditPostAndBotService;
 
     public EventListener(Configuration config) {
         this.config = config;
         redditIngestor = new RedditIngestor(config);
+        redditPostAndBotService = new RedditPostAndBotService(config);
+    }
+
+    @Override
+    public void onGuildJoin(GuildJoinEvent event) {
+        String guildId = event.getGuild().getId();
+        // Generate UUID
+        UUID uuid = UUID.nameUUIDFromBytes(guildId.getBytes());
+        // check if its been added to this Guild before
+        if (!redditPostAndBotService.findByBotId(uuid).isPresent()) {
+            // bot is new to guild, create entry
+            Bot newBot = new Bot(uuid, System.currentTimeMillis());
+            redditPostAndBotService.saveBot(newBot);
+        }
     }
 
     @Override
@@ -100,7 +120,7 @@ public class EventListener extends ListenerAdapter {
     private void sendToDiscord(MessageChannel channel, List<JSONObject> memesJson) {
         for (JSONObject meme : memesJson) {
             channel.sendMessage(parseToEmbed(meme)).queue();
-            redditIngestor.hidePost(meme.getString("name"));
+            // redditIngestor.hidePost(meme.getString("name"));
         }
     }
 
@@ -129,7 +149,7 @@ public class EventListener extends ListenerAdapter {
 
             // hide post
             String fullName = entry.getString("name");
-            redditIngestor.hidePost(fullName);
+            // redditIngestor.hidePost(fullName);
         }
         log.debug(strBuilder.toString());
         return strBuilder.toString();

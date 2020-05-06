@@ -1,5 +1,8 @@
 package com.khye.service;
 
+import java.util.Optional;
+import java.util.UUID;
+
 import com.khye.DTO.Bot;
 import com.khye.DTO.RedditPost;
 import com.khye.config.Configuration;
@@ -21,9 +24,23 @@ public class RedditPostAndBotService {
         botRepo = new BotRepository(config);
     }
 
-    public void save(RedditPost post, Bot bot) {
-        botRepo.save(bot);
-        redditPostRepo.save(post);
+    public void saveRelationship(RedditPost post, Bot bot) {
         redditPostAndBotRepository.save(post, bot);
+    }
+
+    public void saveBot(Bot bot) {
+        botRepo.save(bot);
+    }
+
+    public void saveRedditPost(RedditPost post) {
+        redditPostRepo.save(post);
+    }
+
+    public Optional<Bot> findByBotId(UUID uuid) {
+        return botRepo.findOneByID(uuid);
+    }
+
+    public Optional<RedditPost> findByRedditPostId(String id) {
+        return redditPostRepo.findOneByID(id);
     }
 }

@@ -75,6 +75,6 @@ public class RedditIngestor {
     }
 
     public void hidePost(RedditPost post, Bot bot) {
-        redditPostAndBotService.save(post, bot);
+        redditPostAndBotService.saveRelationship(post, bot);
     }
 }
