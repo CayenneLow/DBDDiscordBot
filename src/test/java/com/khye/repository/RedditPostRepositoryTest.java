@@ -18,6 +18,7 @@ public class RedditPostRepositoryTest {
     public void setup() {
         repo = new RedditPostRepository(Configuration.loadTest());
         dummyPost = constructDummyPost();
+
     }
 
     @Test
