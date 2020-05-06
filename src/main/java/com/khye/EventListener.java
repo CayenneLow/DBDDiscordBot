@@ -24,6 +24,7 @@ public class EventListener extends ListenerAdapter {
     private static Logger log = LoggerFactory.getLogger(EventListener.class);
     private Configuration config;
     private RedditIngestor redditIngestor;
+    
 
     public EventListener(Configuration config) {
         this.config = config;

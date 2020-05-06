@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import com.khye.DTO.Bot;
+import com.khye.DTO.RedditPost;
 import com.khye.config.Configuration;
 import com.khye.config.RedditProps;
+import com.khye.service.RedditPostAndBotService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,10 +24,13 @@ public class RedditIngestor {
     private Configuration config;
     private RedditProps redditProps;
 
+    private RedditPostAndBotService redditPostAndBotService;
+
     public RedditIngestor(Configuration config) {
         this.config = config;
         this.redditProps = config.getReddit();
         this.baseEndPoint = config.getReddit().getOauthBase();
+        redditPostAndBotService = new RedditPostAndBotService(config);
     }
 
     public List<JSONObject> getContent(String source, String after, String before, Integer count, Integer limit,
@@ -68,9 +74,7 @@ public class RedditIngestor {
         }
     }
 
-    public void hidePost(String postName) {
-        HttpResponse<String> response = Unirest.post(baseEndPoint + "api/hide")
-                .header("Authorization", redditProps.getAuthHeader()).queryString("id", postName).asString();
-        log.debug("Hide post status: {}", response.getStatus());
+    public void hidePost(RedditPost post, Bot bot) {
+        redditPostAndBotService.save(post, bot);
     }
 }
