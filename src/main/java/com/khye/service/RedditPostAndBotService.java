@@ -46,6 +46,12 @@ public class RedditPostAndBotService {
         redditPostRepo.save(post);
     }
 
+    public void deleteRelationship(Bot bot) {
+        log.info("Deleting bot relationships, {}", bot);
+
+        botRepo.delete(bot);
+    }
+
     public Optional<Bot> findByBotId(UUID uuid) {
         return botRepo.findOneByID(uuid);
     }

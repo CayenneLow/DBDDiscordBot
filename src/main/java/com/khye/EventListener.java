@@ -19,6 +19,7 @@ import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.guild.GenericGuildEvent;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
+import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -59,6 +60,18 @@ public class EventListener extends ListenerAdapter {
             // bot is new to guild, create entry
             Bot newBot = new Bot(uuid, System.currentTimeMillis());
             redditPostAndBotService.saveBot(newBot);
+        }
+    }
+
+    @Override
+    public void onGuildLeave(GuildLeaveEvent event) {
+        String guildId = event.getGuild().getId();
+        // Generate UUID
+        UUID uuid = UUID.nameUUIDFromBytes(guildId.getBytes());
+        if (redditPostAndBotService.findByBotId(uuid).isPresent()) {
+            // delete all entries in db
+            Bot bot = new Bot(uuid, System.currentTimeMillis());
+            redditPostAndBotService.deleteRelationship(bot);
         }
     }
 
