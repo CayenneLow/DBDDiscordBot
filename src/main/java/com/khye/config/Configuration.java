@@ -1,5 +1,8 @@
 package com.khye.config;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 import org.slf4j.Logger;
@@ -33,7 +36,12 @@ public class Configuration {
             Yaml yaml = new Yaml(new Constructor(Configuration.class));
             InputStream file;
             if (isProd) {
-                file = Configuration.class.getClassLoader().getResourceAsStream("application-props-prod.yml");
+                try {
+                    file = new FileInputStream(new File("/home/ec2-user/application-props-prod.yml"));
+                } catch (FileNotFoundException e) {
+                    log.error("Could not find prod config file, {}", e);
+                    throw new RuntimeException();
+                }
             } else {
                 file = Configuration.class.getClassLoader().getResourceAsStream("application-props-local.yml");
             }
