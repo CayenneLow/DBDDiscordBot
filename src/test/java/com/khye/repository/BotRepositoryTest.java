@@ -18,7 +18,7 @@ public class BotRepositoryTest {
 
     @Before
     public void setup() {
-        repo = new BotRepository(Configuration.loadTest());
+        repo = new BotRepository(Configuration.load(false));
         dummyBot = constructDummyBot();
     }
 

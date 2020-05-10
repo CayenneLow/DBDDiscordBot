@@ -41,14 +41,6 @@ public class Configuration {
         } 
         return instance;
     }
-    public static Configuration loadTest() {
-        if (instance == null) {
-            Yaml yaml = new Yaml(new Constructor(Configuration.class));
-            InputStream file = Configuration.class.getClassLoader().getResourceAsStream("application-props.yml");   // TODO: Change to test props
-            instance = yaml.load(file);
-        } 
-        return instance;
-    }
 
     public void refreshAccessToken(String newAccessToken) {
         // refreshing in memory

@@ -24,12 +24,12 @@ public class RedditPostAndBotRepositoryTest {
 
     @Before
     public void setup() {
-        redditPostAndBotRepository = new RedditPostAndBotRepository(Configuration.loadTest());
+        redditPostAndBotRepository = new RedditPostAndBotRepository(Configuration.load(false));
 
-        redditPostRepo = new RedditPostRepository(Configuration.loadTest());
+        redditPostRepo = new RedditPostRepository(Configuration.load(false));
         dummyPost = constructDummyPost();
 
-        botRepo = new BotRepository(Configuration.loadTest());
+        botRepo = new BotRepository(Configuration.load(false));
         dummyBot = constructDummyBot();
 
         // insert entry into bot and reddit
