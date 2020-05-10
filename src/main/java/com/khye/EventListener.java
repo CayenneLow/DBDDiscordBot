@@ -17,6 +17,8 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.events.guild.GenericGuildEvent;
+import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -38,7 +40,17 @@ public class EventListener extends ListenerAdapter {
     }
 
     @Override
+    public void onGuildJoin(GuildJoinEvent event) {
+        checkAndCreateBot(event);
+    }
+
+    @Override
     public void onGuildReady(GuildReadyEvent event) {
+        // fired on start up
+        checkAndCreateBot(event);
+    }
+
+    private void checkAndCreateBot(GenericGuildEvent event) {
         String guildId = event.getGuild().getId();
         // Generate UUID
         UUID uuid = UUID.nameUUIDFromBytes(guildId.getBytes());
