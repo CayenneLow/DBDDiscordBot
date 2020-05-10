@@ -28,10 +28,15 @@ public class Configuration {
         this.jdbc = jdbc;
     }
 
-    public static Configuration load() {
+    public static Configuration load(boolean isProd) {
         if (instance == null) {
             Yaml yaml = new Yaml(new Constructor(Configuration.class));
-            InputStream file = Configuration.class.getClassLoader().getResourceAsStream("application-props.yml");
+            InputStream file;
+            if (isProd) {
+                file = Configuration.class.getClassLoader().getResourceAsStream("application-props-prod.yml");
+            } else {
+                file = Configuration.class.getClassLoader().getResourceAsStream("application-props-local.yml");
+            }
             instance = yaml.load(file);
         } 
         return instance;
