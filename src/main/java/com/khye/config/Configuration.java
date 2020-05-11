@@ -11,7 +11,6 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
 public class Configuration {
-    @SuppressWarnings("unused")
     private static Logger log = LoggerFactory.getLogger(Configuration.class);
     private DiscordProps discord;
     private RedditProps reddit;

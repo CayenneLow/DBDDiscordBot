@@ -9,6 +9,7 @@ import com.khye.DTO.Bot;
 import com.khye.DTO.RedditPost;
 import com.khye.config.Configuration;
 import com.khye.config.RedditProps;
+import com.khye.exceptions.TooManyMemesException;
 import com.khye.service.RedditPostAndBotService;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -35,8 +36,9 @@ public class RedditIngestor {
         redditPostAndBotService = new RedditPostAndBotService(config);
     }
 
-    public List<JSONObject> getContent(Bot bot, String source, String after, String before, Integer count, Integer limit,
-            Integer numRequested) {
+    public List<JSONObject> getMemes(Bot bot, String source, String after, String before, Integer count, Integer limit, Integer numRequested)
+            throws TooManyMemesException {
+        if (numRequested > config.getApp().getMaxMemes()) throw (new TooManyMemesException("Too many memes requested! Limit: " + config.getApp().getMaxMemes()));
         HttpResponse<String> response = Unirest.get(baseEndPoint + source)
                 .header("Authorization", redditProps.getAuthHeader()).queryString("limit", limit.toString())
                 .queryString("count", count.toString()).asString();
@@ -44,7 +46,7 @@ public class RedditIngestor {
         if (response.getStatus() == 401 || response.getStatus() == 403) {
             log.info("Access token invalid, refreshing");
             refreshAccessToken();
-            return getContent(bot, source, after, before, count, limit, numRequested);
+            return getMemes(bot, source, after, before, count, limit, numRequested);
         } else if (!response.isSuccess()) {
             log.error("Something went wrong with Reddit API call, status: {}", response.getStatus());
             return null;

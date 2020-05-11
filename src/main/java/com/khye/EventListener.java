@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import com.khye.DTO.Bot;
 import com.khye.config.Configuration;
+import com.khye.exceptions.TooManyMemesException;
 import com.khye.service.RedditPostAndBotService;
 
 import org.apache.commons.lang3.StringUtils;
@@ -31,7 +32,7 @@ public class EventListener extends ListenerAdapter {
     private static Logger log = LoggerFactory.getLogger(EventListener.class);
     private Configuration config;
     private RedditIngestor redditIngestor;
-    
+
     private RedditPostAndBotService redditPostAndBotService;
 
     public EventListener(Configuration config) {
@@ -82,18 +83,21 @@ public class EventListener extends ListenerAdapter {
         MessageChannel channel = event.getChannel();
         Message message = event.getMessage();
         String content = message.getContentRaw();
-        if (!content.startsWith("!"))
+        if (!content.startsWith(config.getApp().getPrefix()))
             return; // don't do unecessary parsing if it's not a command
         // get Bot, can assume that we have a bot in db
-        Bot bot = redditPostAndBotService.findByBotId(UUID.nameUUIDFromBytes(event.getGuild().getId().getBytes())).get();
+        Bot bot = redditPostAndBotService.findByBotId(UUID.nameUUIDFromBytes(event.getGuild().getId().getBytes()))
+                .get();
         content = content.toLowerCase();
         String[] splitted = content.split(" ");
-        switch (splitted[0]) {
-            case "!ping":
+        String command = splitted[0].replace(config.getApp().getPrefix(), ""); // trim prefix away, this allows prefix
+                                                                               // to be configurable
+        switch (command) {
+            case "ping":
                 channel.sendMessage("Use NOED if smol pp").queue();
                 break;
 
-            case "!dbdmeme":
+            case "dbdmeme":
                 sendToDiscord(channel, constructMemes(bot, channel, splitted));
                 break;
 
@@ -106,47 +110,55 @@ public class EventListener extends ListenerAdapter {
         List<JSONObject> memesJson = null;
         String source = config.getReddit().getMemeSource();
         // populate memesJson
-        if (command.length < 2) {
-            // handle single argument
-            // defaults to reddit:hot and 1 post
-            memesJson = redditIngestor.getContent(bot, source + "hot.json", null, null, 0, 100, config.getApp().getDefaultNMemes());
-        } else {
-            int nPosts = command.length == 3 ? Integer.parseInt(command[2]) : config.getApp().getDefaultNMemes();
-            switch (command[1]) {
-                case "top":
-                    memesJson = redditIngestor.getContent(bot, source + "top.json", null, null, 0, 100, nPosts);
-                    break;
-                
-                case "new":
-                    memesJson = redditIngestor.getContent(bot, source + "new.json", null, null, 0, 100, nPosts);
-                    break;
+        try {
+            if (command.length < 2) {
+                // handle single argument
+                // defaults to reddit:hot and 1 post
+                memesJson = redditIngestor.getMemes(bot, source + "hot.json", null, null, 0, 100,
+                        config.getApp().getDefaultNMemes());
+            } else {
+                int nPosts = command.length == 3 ? Integer.parseInt(command[2]) : config.getApp().getDefaultNMemes();
+                switch (command[1]) {
+                    case "top":
+                        memesJson = redditIngestor.getMemes(bot, source + "top.json", null, null, 0, 100, nPosts);
+                        break;
 
-                case "rising":
-                    memesJson = redditIngestor.getContent(bot, source + "rising.json", null, null, 0, 100, nPosts);
-                    break;
-                
-                case "hot":
-                    memesJson = redditIngestor.getContent(bot, source + "hot.json", null, null, 0, 100, nPosts);
-                    break;
-            
-                default:
-                    if (StringUtils.isNumeric(command[1])) {
-                        // is a number
-                        memesJson = redditIngestor.getContent(bot, source + "hot.json", null, null, 0, 100, Integer.parseInt(command[1]));
-                    } else {
-                        // unsupported    
-                        channel.sendMessage("Unsupported Command").queue();
-                    }
-                    break;
-            }                
+                    case "new":
+                        memesJson = redditIngestor.getMemes(bot, source + "new.json", null, null, 0, 100, nPosts);
+                        break;
+
+                    case "rising":
+                        memesJson = redditIngestor.getMemes(bot, source + "rising.json", null, null, 0, 100, nPosts);
+                        break;
+
+                    case "hot":
+                        memesJson = redditIngestor.getMemes(bot, source + "hot.json", null, null, 0, 100, nPosts);
+                        break;
+
+                    default:
+                        if (StringUtils.isNumeric(command[1])) {
+                            // is a number
+                            memesJson = redditIngestor.getMemes(bot, source + "hot.json", null, null, 0, 100,
+                                    Integer.parseInt(command[1]));
+                        } else {
+                            // unsupported
+                            channel.sendMessage("Unsupported Command").queue();
+                        }
+                        break;
+                }
+            }
+        } catch (TooManyMemesException e) {
+            channel.sendMessage(e.getMessage()).queue();;
         }
         return memesJson;
     }
 
     private void sendToDiscord(MessageChannel channel, List<JSONObject> memesJson) {
-        for (JSONObject meme : memesJson) {
-            channel.sendMessage(parseToEmbed(meme)).queue();
-            // redditIngestor.hidePost(meme.getString("name"));
+        if (memesJson != null) {
+            for (JSONObject meme : memesJson) {
+                channel.sendMessage(parseToEmbed(meme)).queue();
+                // redditIngestor.hidePost(meme.getString("name"));
+            }
         }
     }
 
