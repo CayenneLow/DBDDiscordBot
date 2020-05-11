@@ -41,7 +41,9 @@ public class RedditIngestor {
         if (numRequested > config.getApp().getMaxMemes()) throw (new TooManyMemesException("Too many memes requested! Limit: " + config.getApp().getMaxMemes()));
         HttpResponse<String> response = Unirest.get(baseEndPoint + source)
                 .header("Authorization", redditProps.getAuthHeader()).queryString("limit", limit.toString())
-                .queryString("count", count.toString()).asString();
+                .queryString("count", count.toString())
+                .queryString("raw_json", "1")   // gets rid of legacy symbols
+                .asString();
         JSONObject responseJson = new JSONObject(response.getBody());
         if (response.getStatus() == 401 || response.getStatus() == 403) {
             log.info("Access token invalid, refreshing");
